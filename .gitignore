@@ -1,0 +1,23 @@
+# Ignore model folders
+gpt2_finetuned/
+saved_gpt2_model/
+
+# Ignore Python cache
+__pycache__/
+
+# Ignore SSH-related stuff
+ssh key and steps/
+
+# Ignore workspace settings (optional)
+*.code-workspace
+
+# Ignore large data files (optional)
+*.csv
+*.txt
+
+# But keep small text files you need by negating the rule:
+!data_loader.py
+!generate_csv.py
+!load_model.py
+!query.py
+!train.py
