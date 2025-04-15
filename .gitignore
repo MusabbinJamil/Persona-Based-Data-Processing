@@ -12,8 +12,8 @@ ssh key and steps/
 *.code-workspace
 
 # Ignore large data files (optional)
-*.csv
-*.txt
+#*.csv
+#*.txt
 
 # But keep small text files you need by negating the rule:
 !data_loader.py

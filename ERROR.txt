@@ -1,0 +1,16 @@
+in query code
+
+E:\Work\Asad-Freelance>python query.py
+Enter your prompt: please give me a name and address
+Traceback (most recent call last):
+  File "E:\Work\Asad-Freelance\query.py", line 36, in <module>
+    main()
+  File "E:\Work\Asad-Freelance\query.py", line 31, in main
+    response = query_model(prompt)
+               ^^^^^^^^^^^^^^^^^^^
+  File "E:\Work\Asad-Freelance\query.py", line 5, in query_model
+    tokenizer = GPT2Tokenizer.from_pretrained(model_dir)
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Python312\Lib\site-packages\transformers\tokenization_utils_base.py", line 2192, in from_pretrained
+    raise EnvironmentError(
+OSError: Can't load tokenizer for './gpt2_finetuned'. If you were trying to load it from 'https://huggingface.co/models', make sure you don't have a local directory with the same name. Otherwise, make sure './gpt2_finetuned' is the correct path to a directory containing all relevant files for a GPT2Tokenizer tokenizer.
