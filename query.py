@@ -1,10 +1,23 @@
 from transformers import GPT2Tokenizer, GPT2LMHeadModel
+import os
+from datetime import datetime
+import csv
+import re
 
-def query_model(prompt, model_dir="./gpt2_finetuned", max_length=100):
-    # Load the tokenizer and model from your fine-tuned directory
-    tokenizer = GPT2Tokenizer.from_pretrained(model_dir)
-    model = GPT2LMHeadModel.from_pretrained(model_dir)
-    print(f"Model loaded from: {model_dir}")
+def query_model(prompt, model_dir="./gpt2_finetuned", max_length=500):
+    print("Trying to load the model...")
+    try:
+        # Load the tokenizer and model from your fine-tuned directory
+        tokenizer = GPT2Tokenizer.from_pretrained(model_dir)
+        model = GPT2LMHeadModel.from_pretrained(model_dir)
+        print(f"Model loaded from: {model_dir}")
+    except (OSError, ValueError) as e:
+        print(f"Error loading model from {model_dir}: {e}")
+        print("Falling back to default 'gpt2' model...")
+        tokenizer = GPT2Tokenizer.from_pretrained("gpt2")
+        model = GPT2LMHeadModel.from_pretrained("gpt2")
+        print(f"Model loaded from: huggingface/gpt2")
+    
     
     # Encode the prompt into input tokens
     input_ids = tokenizer.encode(prompt, return_tensors="pt")
@@ -26,11 +39,87 @@ def query_model(prompt, model_dir="./gpt2_finetuned", max_length=100):
     print(f"Generated text: {generated_text[:200]}...")  # Print first 200 characters for brevity
     return generated_text
 
+def save_response_to_file(response, folder="responses"):
+    # Create the folder if it doesn't exist
+    if not os.path.exists(folder):
+        os.makedirs(folder)
+    
+    # Generate a filename with timestamp
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    filename = f"{folder}/response_{timestamp}.txt"
+    
+    # Save the response to the file
+    with open(filename, "w", encoding="utf-8") as f:
+        f.write(response)
+    
+    return filename
+
+def clean_data_to_csv(text_data, output_file='cleaned_profiles.csv'):
+    # Split the text into individual profiles
+    profiles = re.split(r'-{5,}', text_data)
+    profiles = [p.strip() for p in profiles if p.strip() and not p.strip().startswith('Please clean this data')]
+    
+    parsed_data = []
+    for profile in profiles:
+        data = {}
+        
+        # Extract name
+        name_match = re.search(r'Name:\s*(.*?)(?=EMAIL:|$)', profile, re.DOTALL)
+        if name_match:
+            data['name'] = re.sub(r'\s+', ' ', name_match.group(1).strip())
+        
+        # Extract email
+        email_match = re.search(r'EMAIL:\s*(.*?)(?=Date Created:|$)', profile, re.DOTALL)
+        if email_match:
+            data['email'] = email_match.group(1).strip()
+        
+        # Extract date
+        date_match = re.search(r'Date Created:\s*(.*?)(?=BIO TEXT:|$)', profile, re.DOTALL)
+        if date_match:
+            data['date_created'] = re.sub(r'\s+', ' ', date_match.group(1).strip())
+        
+        # Extract bio
+        bio_match = re.search(r'BIO TEXT:(.*?)(?=Current address:|$)', profile, re.DOTALL)
+        if bio_match:
+            data['bio'] = re.sub(r'\s+', ' ', bio_match.group(1).strip())
+        
+        # Extract address
+        address_match = re.search(r'Current address:(.*?)(?=---|$)', profile, re.DOTALL)
+        if address_match:
+            data['address'] = re.sub(r'\s+', ' ', address_match.group(1).strip())
+        
+        parsed_data.append(data)
+    
+    # Write to CSV
+    with open(output_file, 'w', newline='', encoding='utf-8') as csvfile:
+        fieldnames = ['name', 'email', 'date_created', 'bio', 'address']
+        writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+        writer.writeheader()
+        writer.writerows(parsed_data)
+    
+    return f"Successfully converted data to {output_file}"
+
+
 def main():
     prompt = input("Enter your prompt: ")
     response = query_model(prompt)
     print("\nResponse:")
     print(response)
+    
+    # Save response to file
+    saved_file = save_response_to_file(response)
+    print(f"\nResponse saved to: {saved_file}")
+    
+    # Ask if user wants to convert response to CSV
+    convert_to_csv = input("\nDo you want to convert this response to CSV? (y/n): ")
+    if convert_to_csv.lower() == 'y':
+        # Generate CSV filename with timestamp
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        csv_filename = f"cleaned_profiles_{timestamp}.csv"
+        
+        # Convert to CSV
+        result = clean_data_to_csv(response, csv_filename)
+        print(result)
 
 if __name__ == "__main__":
     main()
