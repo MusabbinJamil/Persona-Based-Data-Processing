@@ -1,0 +1,13 @@
+# Core ML libraries
+torch>=1.10.0
+transformers>=4.15.0
+
+# For generating fake data
+faker>=8.0.0
+
+# Standard libraries (included for documentation)
+# These don't need to be installed as they're part of Python standard library
+# - os
+# - datetime
+# - csv
+# - re
