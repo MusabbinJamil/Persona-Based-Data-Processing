@@ -1,6 +1,8 @@
 # Ignore model folders
 gpt2_finetuned/
 saved_gpt2_model/
+models/
+venv/
 
 # Ignore Python cache
 __pycache__/
